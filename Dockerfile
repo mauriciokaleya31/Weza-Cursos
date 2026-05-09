@@ -1,11 +1,13 @@
 # Stage 1: Build
-FROM node:20-alpine AS build
+FROM node:20 AS build
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies with legacy-peer-deps to avoid conflicts with React 19
+RUN npm ci --legacy-peer-deps
 
 # Copy the rest of the application code
 COPY . .
@@ -19,8 +21,8 @@ FROM nginx:alpine
 # Copy the build output to the nginx html directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy a custom nginx configuration if needed (optional)
-# COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy a custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
